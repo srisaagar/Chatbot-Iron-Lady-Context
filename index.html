@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Iron Lady – Leadership Programs Chatbot</title>
+  <meta name="description" content="Ask quick FAQs about Iron Lady's leadership programs: offerings, duration, mode, certificates, and mentors." />
+  <style>
+    :root{
+      --bg: #0f0f14;
+      --panel: #141824;
+      --accent: #7c3aed; /* purple-600 */
+      --accent-2:#a78bfa;
+      --text: #e6e8ee;
+      --muted:#9aa1b3;
+      --success:#16a34a;
+      --danger:#ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text); background: radial-gradient(1200px 800px at 80% -10%, #24104f 0%, rgba(36,16,79,0) 60%),
+                        radial-gradient(900px 700px at -10% 120%, #2b1047 0%, rgba(43,16,71,0) 60%), var(--bg);
+      min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .site{max-width:1100px; width:100%;}
+    header{
+      display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo{ width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,var(--accent),#4c1d95); display:grid; place-items:center; box-shadow:var(--shadow)}
+    .logo span{font-weight:800; letter-spacing:.5px}
+    h1{ font-size: clamp(22px, 2.6vw, 34px); margin:0; }
+    .subtitle{ color:var(--muted); margin-top:4px; font-size:14px }
+
+    .hero{ display:grid; grid-template-columns: 1.2fr .8fr; gap:22px; }
+    @media (max-width: 860px){ .hero{ grid-template-columns: 1fr } }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .info{ padding:22px }
+    .info h2{ margin:0 0 10px; font-size:20px }
+    .info ul{ margin:0; padding-left:18px; color:var(--muted) }
+
+    /* Chat widget */
+    .chat{ display:flex; flex-direction:column; height:560px; overflow:hidden }
+    .chat-header{
+      padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.08);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .status{ display:flex; align-items:center; gap:10px }
+    .dot{ width:10px; height:10px; border-radius:50%; background:var(--success); box-shadow:0 0 0 6px rgba(22,163,74,.15)}
+
+    .chat-log{ flex:1; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:10px; }
+    .msg{ max-width:80%; padding:12px 14px; border-radius:14px; line-height:1.35 }
+    .msg.bot{ background:#1b2030; border:1px solid rgba(255,255,255,0.06) }
+    .msg.user{ align-self:flex-end; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff }
+    .time{ display:block; color:var(--muted); font-size:11px; margin-top:6px }
+
+    .quick{ display:flex; flex-wrap:wrap; gap:8px; padding:0 18px 12px }
+    .chip{ border:1px solid rgba(255,255,255,0.12); color:var(--text); background:transparent; padding:8px 10px; border-radius:999px; cursor:pointer; font-size:12px }
+    .chip:focus-visible{ outline:2px solid var(--accent) }
+
+    .chat-input{ display:flex; gap:10px; padding:12px; border-top:1px solid rgba(255,255,255,0.08) }
+    .chat-input input{ flex:1; padding:12px 14px; background:#0e111a; color:var(--text); border:1px solid rgba(255,255,255,0.1); border-radius:12px }
+    .chat-input button{ padding:12px 16px; border:none; border-radius:12px; background:var(--accent); color:#fff; cursor:pointer; font-weight:600 }
+    .chat-input button:hover{ filter:brightness(1.05) }
+
+    footer{ margin-top:16px; color:var(--muted); font-size:12px; text-align:center }
+
+    /* Floating toggle (optional on mobile) */
+    .toggle{
+      position:fixed; right:18px; bottom:18px; z-index:10;
+      display:none; align-items:center; gap:8px; padding:10px 14px; border-radius:999px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border:none; box-shadow:var(--shadow); cursor:pointer
+    }
+    @media (max-width: 640px){ .toggle{ display:flex } .hero{ gap:14px } }
+    .hidden-mobile{ }
+    @media (max-width: 640px){ .hidden-mobile{ display:none } }
+  </style>
+</head>
+<body>
+  <button id="toggle" class="toggle" aria-controls="chat-panel" aria-expanded="true">💬 Ask Iron Lady</button>
+
+  <div class="site">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><span>IL</span></div>
+        <div>
+          <h1>Iron Lady – Leadership Programs</h1>
+          <p class="subtitle">Quick answers via the built‑in chatbot. No data leaves your browser.</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <!-- Info panel -->
+      <div class="card info">
+        <h2>What you can ask</h2>
+        <ul>
+          <li>What programs does Iron Lady offer?</li>
+          <li>What is the program duration?</li>
+          <li>Is the program online or offline?</li>
+          <li>Are certificates provided?</li>
+          <li>Who are the mentors/coaches?</li>
+        </ul>
+      </div>
+
+      <!-- Chat panel -->
+      <div id="chat-panel" class="card chat" role="region" aria-label="Iron Lady chatbot">
+        <div class="chat-header">
+          <div class="status"><span class="dot" aria-hidden="true"></span><strong>Iron Lady Bot</strong></div>
+          <small style="color:var(--muted)">FAQ Assistant</small>
+        </div>
+
+        <div id="log" class="chat-log" tabindex="0" aria-live="polite" aria-relevant="additions"></div>
+        <div class="quick" id="quick"></div>
+
+        <form id="composer" class="chat-input" autocomplete="off">
+          <label class="sr-only" for="q" style="position:absolute;left:-9999px">Type your question</label>
+          <input id="q" name="q" placeholder="Ask about programs, duration, mode…" required />
+          <button type="submit" id="send">Send ↵</button>
+        </form>
+      </div>
+    </section>
+
+    <footer>© <span id="year"></span> Iron Lady (demo). This is a static, client‑only FAQ chatbot.</footer>
+  </div>
+
+  <script>
+    // --- Knowledge base (simple rule set with keyword groups) ---
+    const KB = [
+      {
+        id: 'programs',
+        triggers: ['what programs', 'programs does iron lady offer', 'offer', 'courses', 'what do you offer', 'program list'],
+        answer: `Iron Lady offers leadership development programs focused on confidence, communication, career acceleration, and transformational leadership for women.`
+      },
+      {
+        id: 'duration',
+        triggers: ['program duration', 'how long', 'duration', 'length of program', 'time period'],
+        answer: `Durations vary: short workshops (2–3 days) and longer leadership journeys (3–6 months).`
+      },
+      {
+        id: 'mode',
+        triggers: ['online or offline', 'is it online', 'mode', 'class mode', 'hybrid', 'in person'],
+        answer: `Programs are primarily online. Selected workshops may be offered offline in major cities.`
+      },
+      {
+        id: 'certificates',
+        triggers: ['certificates', 'certificate provided', 'do we get certificate', 'proof', 'completion'],
+        answer: `Yes, participants receive a certificate upon successful completion.`
+      },
+      {
+        id: 'mentors',
+        triggers: ['mentors', 'coaches', 'who teaches', 'trainers', 'faculty'],
+        answer: `Mentors and coaches include industry leaders, certified leadership coaches, and experienced professionals dedicated to empowering women leaders.`
+      }
+    ];
+
+    // --- UI helpers ---
+    const log = document.getElementById('log');
+    const quick = document.getElementById('quick');
+    const form = document.getElementById('composer');
+    const input = document.getElementById('q');
+    const toggle = document.getElementById('toggle');
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const QuickPrompts = [
+      'What programs does Iron Lady offer?',
+      'What is the program duration?',
+      'Is the program online or offline?',
+      'Are certificates provided?',
+      'Who are the mentors/coaches?'
+    ];
+
+    function addQuickChips(){
+      quick.innerHTML = '';
+      QuickPrompts.forEach(text => {
+        const b = document.createElement('button');
+        b.className = 'chip';
+        b.type = 'button';
+        b.textContent = text;
+        b.addEventListener('click', ()=> { send(text); });
+        quick.appendChild(b);
+      })
+    }
+
+    function messageEl(text, role='bot'){
+      const wrap = document.createElement('div');
+      wrap.className = `msg ${role}`;
+      wrap.innerText = text;
+      const t = document.createElement('span');
+      t.className = 'time';
+      t.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      wrap.appendChild(t);
+      return wrap;
+    }
+
+    function append(role, text){
+      const m = messageEl(text, role);
+      log.appendChild(m);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function normalize(str){
+      return str.toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+    }
+
+    function findAnswer(q){
+      const nq = normalize(q);
+      for (const item of KB){
+        for (const trig of item.triggers){
+          if (nq.includes(normalize(trig))) return item.answer;
+        }
+      }
+      return "Sorry, I don’t have an answer for that. Please check Iron Lady's official website or contact support.";
+    }
+
+    async function send(text){
+      input.value = '';
+      append('user', text);
+      await new Promise(r=>setTimeout(r, 350));
+      append('bot', findAnswer(text));
+      input.focus();
+    }
+
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const q = input.value.trim();
+      if(!q) return;
+      send(q);
+    });
+
+    // Keyboard: Enter to send, Shift+Enter for newline (in single-line input we just send)
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' && !e.shiftKey){ /* default submit */ }
+    });
+
+    // Initial greeting
+    append('bot', 'Hi! I\'m the Iron Lady FAQ bot. Ask me about programs, duration, mode, certificates, or mentors.');
+    addQuickChips();
+
+    // Floating toggle for mobile
+    toggle.addEventListener('click', ()=>{
+      const panel = document.getElementById('chat-panel');
+      const hidden = panel.classList.toggle('hidden-mobile');
+      toggle.setAttribute('aria-expanded', String(!hidden));
+    });
+  </script>
+</body>
+</html>
